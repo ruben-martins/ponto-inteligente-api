@@ -18,8 +18,8 @@ import java.util.List;
 })
 public interface LancamentoRepository extends JpaRepository<Lancamento, Long> {
 
-    List<Lancamento> findByFuncionario(@Param("funcionarioId") Long funcionarioId);
+    List<Lancamento> findByFuncionarioId(@Param("funcionarioId") Long funcionarioId);
 
-    Page<Lancamento> findByFuncionario(@Param("funcionarioId") Long funcionarioId, Pageable pageable);
+    Page<Lancamento> findByFuncionarioId(@Param("funcionarioId") Long funcionarioId, Pageable pageable);
 
 }
