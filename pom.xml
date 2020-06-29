@@ -82,6 +82,15 @@
 			<artifactId>spring-security-core</artifactId>
 			<version>5.2.2.RELEASE</version>
 		</dependency>
+
+		<!-- Lombok -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.12</version>
+			<scope>provided</scope>
+		</dependency>
+
 	</dependencies>
 
 	<build>
