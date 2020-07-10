@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-import java.security.NoSuchAlgorithmException;
 
 @RestController
 @RequestMapping("/api/cadastrar-pj")
@@ -38,7 +37,7 @@ public class CadastroPJController {
 
     @PostMapping
     public ResponseEntity<Response<CadastroPJDTO>> cadastrar(@Valid @RequestBody CadastroPJDTO cadastroPJDTO,
-                                                             BindingResult result) throws NoSuchAlgorithmException {
+                                                             BindingResult result) {
         log.info("Cadastrando PJ {}", cadastroPJDTO.toString());
         validarDadosExistentes(cadastroPJDTO, result);
         Response<CadastroPJDTO> response = new Response<>();

@@ -4,6 +4,7 @@ import com.rubenmartins.pontointeligente.api.dtos.FuncionarioDTO;
 import com.rubenmartins.pontointeligente.api.entities.Funcionario;
 import com.rubenmartins.pontointeligente.api.response.Response;
 import com.rubenmartins.pontointeligente.api.services.FuncionarioService;
+import com.rubenmartins.pontointeligente.api.utils.PasswordUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.math.BigDecimal;
 import java.util.Optional;
 
 @RestController
@@ -36,20 +38,50 @@ public class FuncionarioController {
                                                               BindingResult result) {
         log.info("Atualizando funcionário: {}", funcionarioDTO.toString());
         Response<FuncionarioDTO> response = new Response<>();
-        Optional<Funcionario> optional = funcionarioService.buscarPorId(id);
-        if (!optional.isPresent()) {
+
+        Optional<Funcionario> funcionario = funcionarioService.buscarPorId(id);
+        if (!funcionario.isPresent()) {
             result.addError(new ObjectError("funcionario", "Funcionário não encontrado."));
+        } else {
+            atualizarDadosFuncionario(funcionario.get(), funcionarioDTO, result);
         }
-        // atualiza tudo
 
         if (result.hasErrors()) {
             log.error("Erro ao validar funcionário: {}", result.getAllErrors());
             result.getAllErrors().forEach(e -> response.getErrors().add(e.getDefaultMessage()));
             return ResponseEntity.badRequest().body(response);
         }
-        funcionarioService.persistir(optional.get());
 
+        funcionarioService.persistir(funcionario.get());
+        response.setData(convertFuncionarioEmDTO(funcionario.get()));
         return ResponseEntity.ok(response);
+    }
+
+    private void atualizarDadosFuncionario(Funcionario funcionario, FuncionarioDTO dto, BindingResult result) {
+        funcionario.setNome(dto.getNome());
+        funcionario.setEmail(dto.getEmail());
+        if (!funcionario.getEmail().equalsIgnoreCase(dto.getEmail())) {
+            funcionarioService.buscarPorEmail(dto.getEmail())
+                .ifPresent(f -> result.addError(new ObjectError("email", "Email já existente")));
+            funcionario.setEmail(dto.getEmail());
+        }
+        dto.getQtdHorasAlmoco().ifPresent(qtd -> funcionario.setQtdHorasAlmoco(Float.valueOf(qtd)));
+        dto.getValorHora().ifPresent(v -> funcionario.setValorHora(new BigDecimal(v)));
+        dto.getSenha().ifPresent(s -> funcionario.setSenha(PasswordUtils.gerarBCrypt(s)));
+    }
+
+    private FuncionarioDTO convertFuncionarioEmDTO(Funcionario funcionario) {
+        FuncionarioDTO dto = new FuncionarioDTO();
+        dto.setId(funcionario.getId());
+        dto.setNome(funcionario.getNome());
+        dto.setEmail(funcionario.getEmail());
+        funcionario.getQtdHorasTrabalhoDiaOpt().ifPresent(
+            qtd -> dto.setQtdHorasTrabalhoDia(Optional.of(Float.toString(funcionario.getQtdHorasTrabalhoDia()))));
+        funcionario.getQtdHorasAlmocoOpt().ifPresent(
+            qtd -> dto.setQtdHorasTrabalhoDia(Optional.of(Float.toString(funcionario.getQtdHorasAlmoco()))));
+        funcionario.getValorHoraOpt().ifPresent(
+            v -> dto.setValorHora(Optional.of(funcionario.getValorHora().toString())));
+        return dto;
     }
 
 }
